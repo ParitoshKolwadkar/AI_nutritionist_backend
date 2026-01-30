@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const watsonxService = require('../services/watsonxService');
+const geminiService = require('../services/geminiService');
 
 // Analyze food from text description
 router.post('/analyze-text', async (req, res) => {
@@ -19,7 +19,7 @@ router.post('/analyze-text', async (req, res) => {
       });
     }
 
-    const analysis = await watsonxService.generateNutritionAdvice(
+    const analysis = await geminiService.generateNutritionAdvice(
       userProfile, 
       foodItems
     );
@@ -59,7 +59,7 @@ router.post('/meal-insights', async (req, res) => {
     }
 
     const prompt = `Analyze this ${mealName || 'meal'} and provide insights: ${foodItems.join(', ')}`;
-    const insights = await watsonxService.generateNutritionAdvice(
+    const insights = await geminiService.generateNutritionAdvice(
       userProfile, 
       foodItems
     );

@@ -6,6 +6,35 @@ const bodyParser = require('body-parser');
 // Load environment variables
 dotenv.config();
 
+// Initialize Firebase Admin SDK
+const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
+
+try {
+  // Check if already initialized
+  if (!admin.apps.length) {
+    // Try to load service account from file - use __dirname for correct path
+    const serviceAccountPath = path.join(__dirname, 'genuine-ember-454418-t1-56f0eec59f19.json');
+    
+    if (fs.existsSync(serviceAccountPath)) {
+      const serviceAccount = require(serviceAccountPath);
+      const projectId = process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id;
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId
+      });
+      console.log('✅ Firebase Admin initialized successfully');
+      console.log(`✅ Firebase Admin projectId: ${projectId}`);
+    } else {
+      console.warn('⚠️ Firebase service account file not found at:', serviceAccountPath);
+      console.warn('⚠️ Firebase features will be disabled.');
+    }
+  }
+} catch (error) {
+  console.error('❌ Firebase Admin initialization error:', error.message);
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -22,11 +51,15 @@ const nutritionRoutes = require('./routes/nutrition');
 const mealPlanRoutes = require('./routes/mealPlan');
 const healthProfileRoutes = require('./routes/healthProfile');
 const foodAnalysisRoutes = require('./routes/foodAnalysis');
+const voiceAssistantRoutes = require('./routes/voiceAssistant');
+const workoutRoutes = require('./routes/workout');
 
 app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/meal-plan', mealPlanRoutes);
 app.use('/api/health-profile', healthProfileRoutes);
 app.use('/api/food-analysis', foodAnalysisRoutes);
+app.use('/api/voice-assistant', voiceAssistantRoutes);
+app.use('/api/workout', workoutRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

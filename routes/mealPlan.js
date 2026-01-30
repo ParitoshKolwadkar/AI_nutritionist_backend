@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const watsonxService = require('../services/watsonxService');
+const geminiService = require('../services/geminiService');
 
 // Generate personalized meal plan
 router.post('/generate', async (req, res) => {
@@ -11,7 +11,7 @@ router.post('/generate', async (req, res) => {
       return res.status(400).json({ error: 'User profile is required' });
     }
 
-    const mealPlan = await watsonxService.generateMealPlan(userProfile, preferences);
+    const mealPlan = await geminiService.generateMealPlan(userProfile, preferences);
     
     res.json({ 
       success: true, 
@@ -44,7 +44,7 @@ router.post('/food-swaps', async (req, res) => {
       return res.status(400).json({ error: 'User profile is required' });
     }
 
-    const swaps = await watsonxService.generateSmartFoodSwaps(currentFoods, userProfile);
+    const swaps = await geminiService.generateSmartFoodSwaps(currentFoods, userProfile);
     
     res.json({ 
       success: true, 
@@ -77,7 +77,7 @@ router.post('/explain', async (req, res) => {
       return res.status(400).json({ error: 'User profile is required' });
     }
 
-    const explanation = await watsonxService.explainFoodChoice(
+    const explanation = await geminiService.explainFoodChoice(
       foodItem, 
       comparison, 
       userProfile
