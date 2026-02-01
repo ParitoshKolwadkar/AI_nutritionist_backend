@@ -1,49 +1,62 @@
-const fs = require('fs');
-const path = require('path');
+const { MongoClient } = require('mongodb');
+require('dotenv').config();
 
 class FoodDataService {
   constructor() {
-    this.foodData = null;
-    this.loadFoodData();
+    this.db = null;
+    this.collection = null;
+    this.connectToMongoDB();
   }
 
-  loadFoodData() {
+  async connectToMongoDB() {
     try {
-      const dataPath = path.join(__dirname, '../FoodData_Central_sr_legacy_food_json_2018-04.json');
-      if (fs.existsSync(dataPath)) {
-        const rawData = fs.readFileSync(dataPath, 'utf8');
-        this.foodData = JSON.parse(rawData);
-        console.log('✅ Food data loaded successfully');
-      } else {
-        console.warn('⚠️ Food data file not found. Some features may be limited.');
-        this.foodData = { SRLegacyFoods: [] };
-      }
+      console.log('📡 Connecting to MongoDB...');
+      const client = new MongoClient(process.env.MONGODB_URI);
+      await client.connect();
+      
+      this.db = client.db('nutritionist');
+      this.collection = this.db.collection('foods');
+      
+      const count = await this.collection.countDocuments();
+      console.log(`✅ Connected to MongoDB - ${count} food items available`);
     } catch (error) {
-      console.error('❌ Error loading food data:', error.message);
-      this.foodData = { SRLegacyFoods: [] };
+      console.error('❌ Error connecting to MongoDB:', error.message);
     }
   }
 
-  searchFoods(query, limit = 20) {
-    if (!this.foodData || !this.foodData.SRLegacyFoods) {
+  async searchFoods(query, limit = 20) {
+    if (!this.collection) {
       return [];
     }
 
-    const searchTerm = query.toLowerCase();
-    const results = this.foodData.SRLegacyFoods.filter(food => 
-      food.description && food.description.toLowerCase().includes(searchTerm)
-    ).slice(0, limit);
+    try {
+      const searchTerm = query.toLowerCase();
+      const results = await this.collection
+        .find({
+          description: { $regex: searchTerm, $options: 'i' }
+        })
+        .limit(limit)
+        .toArray();
 
-    return results.map(food => this.formatFoodItem(food));
+      return results.map(food => this.formatFoodItem(food));
+    } catch (error) {
+      console.error('Error searching foods:', error.message);
+      return [];
+    }
   }
 
-  getFoodById(fdcId) {
-    if (!this.foodData || !this.foodData.SRLegacyFoods) {
+  async getFoodById(fdcId) {
+    if (!this.collection) {
       return null;
     }
 
-    const food = this.foodData.SRLegacyFoods.find(f => f.fdcId === parseInt(fdcId));
-    return food ? this.formatFoodItem(food) : null;
+    try {
+      const food = await this.collection.findOne({ fdcId: parseInt(fdcId) });
+      return food ? this.formatFoodItem(food) : null;
+    } catch (error) {
+      console.error('Error getting food by ID:', error.message);
+      return null;
+    }
   }
 
   formatFoodItem(food) {
@@ -173,20 +186,30 @@ class FoodDataService {
     };
   }
 
-  getSimilarFoods(fdcId, limit = 5) {
-    const targetFood = this.getFoodById(fdcId);
-    if (!targetFood || !this.foodData || !this.foodData.SRLegacyFoods) {
+  async getSimilarFoods(fdcId, limit = 5) {
+    if (!this.collection) {
       return [];
     }
 
-    const similar = this.foodData.SRLegacyFoods
-      .filter(food => 
-        food.fdcId !== parseInt(fdcId) && 
-        food.foodCategory?.description === targetFood.category
-      )
-      .slice(0, limit);
+    try {
+      const targetFood = await this.getFoodById(fdcId);
+      if (!targetFood) {
+        return [];
+      }
 
-    return similar.map(food => this.formatFoodItem(food));
+      const similar = await this.collection
+        .find({
+          fdcId: { $ne: parseInt(fdcId) },
+          'foodCategory.description': targetFood.category
+        })
+        .limit(limit)
+        .toArray();
+
+      return similar.map(food => this.formatFoodItem(food));
+    } catch (error) {
+      console.error('Error getting similar foods:', error.message);
+      return [];
+    }
   }
 }
 

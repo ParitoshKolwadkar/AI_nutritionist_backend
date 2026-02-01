@@ -5,5 +5,6 @@ node_modules/
 *.tmp
 uploads/
 
-# Large food data file - loaded from Google Drive instead
+# Large food data file - loaded from MongoDB instead
 FoodData_Central_sr_legacy_food_json_2018-04.json
+uploadToMongoDB.js

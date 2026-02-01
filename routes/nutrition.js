@@ -3,7 +3,7 @@ const router = express.Router();
 const foodDataService = require('../services/foodDataService');
 
 // Search foods
-router.get('/search', (req, res) => {
+router.get('/search', async (req, res) => {
   try {
     const { query, limit } = req.query;
     
@@ -11,7 +11,7 @@ router.get('/search', (req, res) => {
       return res.status(400).json({ error: 'Search query is required' });
     }
 
-    const results = foodDataService.searchFoods(query, parseInt(limit) || 20);
+    const results = await foodDataService.searchFoods(query, parseInt(limit) || 20);
     res.json({ success: true, data: results, count: results.length });
   } catch (error) {
     console.error('Error searching foods:', error);
@@ -20,10 +20,10 @@ router.get('/search', (req, res) => {
 });
 
 // Get food by ID
-router.get('/:fdcId', (req, res) => {
+router.get('/:fdcId', async (req, res) => {
   try {
     const { fdcId } = req.params;
-    const food = foodDataService.getFoodById(fdcId);
+    const food = await foodDataService.getFoodById(fdcId);
     
     if (!food) {
       return res.status(404).json({ error: 'Food not found' });
@@ -37,12 +37,12 @@ router.get('/:fdcId', (req, res) => {
 });
 
 // Get similar foods
-router.get('/:fdcId/similar', (req, res) => {
+router.get('/:fdcId/similar', async (req, res) => {
   try {
     const { fdcId } = req.params;
     const { limit } = req.query;
     
-    const similar = foodDataService.getSimilarFoods(fdcId, parseInt(limit) || 5);
+    const similar = await foodDataService.getSimilarFoods(fdcId, parseInt(limit) || 5);
     res.json({ success: true, data: similar, count: similar.length });
   } catch (error) {
     console.error('Error getting similar foods:', error);
@@ -51,7 +51,7 @@ router.get('/:fdcId/similar', (req, res) => {
 });
 
 // Calculate nutrition for multiple foods
-router.post('/calculate', (req, res) => {
+router.post('/calculate', async (req, res) => {
   try {
     const { foodIds, servings } = req.body;
     
@@ -59,7 +59,9 @@ router.post('/calculate', (req, res) => {
       return res.status(400).json({ error: 'Food IDs array is required' });
     }
 
-    const foods = foodIds.map(id => foodDataService.getFoodById(id)).filter(f => f);
+    const foodPromises = foodIds.map(id => foodDataService.getFoodById(id));
+    const foodsWithNulls = await Promise.all(foodPromises);
+    const foods = foodsWithNulls.filter(f => f);
     const nutrition = foodDataService.calculateNutrition(foods, servings);
     
     res.json({ success: true, data: nutrition });
