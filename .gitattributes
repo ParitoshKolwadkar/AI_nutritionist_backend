@@ -1,2 +1,0 @@
-FoodData_Central_sr_legacy_food_json_2018-04.json filter=lfs diff=lfs merge=lfs -text
-FoodData_Central_sr_legacy_food_json_2018-04.json !text !filter !merge !diff

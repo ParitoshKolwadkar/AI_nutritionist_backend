@@ -4,3 +4,6 @@ node_modules/
 .DS_Store
 *.tmp
 uploads/
+
+# Large food data file - loaded from Google Drive instead
+FoodData_Central_sr_legacy_food_json_2018-04.json
