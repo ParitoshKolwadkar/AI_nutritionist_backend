@@ -9,7 +9,7 @@ class FoodDataService {
 
   loadFoodData() {
     try {
-      const dataPath = path.join(__dirname, '../../FoodData_Central_sr_legacy_food_json_2018-04.json');
+      const dataPath = path.join(__dirname, '../FoodData_Central_sr_legacy_food_json_2018-04.json');
       if (fs.existsSync(dataPath)) {
         const rawData = fs.readFileSync(dataPath, 'utf8');
         this.foodData = JSON.parse(rawData);
