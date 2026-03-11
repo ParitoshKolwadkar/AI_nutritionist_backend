@@ -16,7 +16,7 @@ try {
   if (!admin.apps.length) {
     // Try to load service account from file - use __dirname for correct path
     const serviceAccountPath = path.join(__dirname, 'genuine-ember-454418-t1-56f0eec59f19.json');
-    
+
     if (fs.existsSync(serviceAccountPath)) {
       const serviceAccount = require(serviceAccountPath);
       const projectId = process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id;
@@ -42,11 +42,13 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:3000',
   'https://hardikchawhan.github.io',
-  'https://hardikchawhan.github.io/GDG_Ai_nutritionist_frontend'
+  'https://hardikchawhan.github.io/GDG_Ai_nutritionist_frontend',
+  'https://ainutritionist.tech',
+  'https://www.ainutritionist.tech'
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -76,8 +78,8 @@ app.use('/api/workout', workoutRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     message: 'AI Nutrition Assistant API is running',
     timestamp: new Date().toISOString()
   });
@@ -86,9 +88,9 @@ app.get('/api/health', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ 
-    error: 'Something went wrong!', 
-    message: err.message 
+  res.status(500).json({
+    error: 'Something went wrong!',
+    message: err.message
   });
 });
 
